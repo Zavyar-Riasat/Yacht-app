@@ -71,4 +71,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'yacht-rental-flutter-app.firebasestorage.app',
     iosBundleId: 'com.example.flutterApplicationProject',
   );
+
 }
