@@ -47,28 +47,29 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyC3KQxUbs1rObD7OtpJSijVFVkokbGhDcE',
-    appId: '1:605525940234:web:d4729a06476dba5bb1e7f3',
-    messagingSenderId: '605525940234',
-    projectId: 'yacht-rental-flutter-app',
-    authDomain: 'yacht-rental-flutter-app.firebaseapp.com',
-    storageBucket: 'yacht-rental-flutter-app.firebasestorage.app',
+    apiKey: 'AIzaSyBVXQzksrRFMI8EWBWW4Kh0jlfsURGlYVU',
+    appId: '1:706143191898:web:b177c6546d51e5e8596963',
+    messagingSenderId: '706143191898',
+    projectId: 'yacht-app-c9b45',
+    authDomain: 'yacht-app-c9b45.firebaseapp.com',
+    storageBucket: 'yacht-app-c9b45.firebasestorage.app',
+    measurementId: 'G-39MLN2HQ0H',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAHF7TRRVP3Pvp62t0lNAyZvTuq4JhH6r8',
-    appId: '1:605525940234:android:060a994f4bb0db91b1e7f3',
-    messagingSenderId: '605525940234',
-    projectId: 'yacht-rental-flutter-app',
-    storageBucket: 'yacht-rental-flutter-app.firebasestorage.app',
+    apiKey: 'AIzaSyA_C0ZGi2vdUUZ10XWpCRAMZP30WK66lsk',
+    appId: '1:706143191898:android:f597b0a13e062d37596963',
+    messagingSenderId: '706143191898',
+    projectId: 'yacht-app-c9b45',
+    storageBucket: 'yacht-app-c9b45.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBU7UJsMn1KPH77jtJbKIdTNYyZPG5LOrY',
-    appId: '1:605525940234:ios:cb75909494e1d2c4b1e7f3',
-    messagingSenderId: '605525940234',
-    projectId: 'yacht-rental-flutter-app',
-    storageBucket: 'yacht-rental-flutter-app.firebasestorage.app',
+    apiKey: 'AIzaSyDCyP2l_7tegVRbOBJg0Jtz6-1UkVDNpII',
+    appId: '1:706143191898:ios:d7fa72c8df90617f596963',
+    messagingSenderId: '706143191898',
+    projectId: 'yacht-app-c9b45',
+    storageBucket: 'yacht-app-c9b45.firebasestorage.app',
     iosBundleId: 'com.example.flutterApplicationProject',
   );
 

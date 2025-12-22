@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "605525940234",
-    "project_id": "yacht-rental-flutter-app",
-    "storage_bucket": "yacht-rental-flutter-app.firebasestorage.app"
+    "project_number": "706143191898",
+    "project_id": "yacht-app-c9b45",
+    "storage_bucket": "yacht-app-c9b45.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:605525940234:android:060a994f4bb0db91b1e7f3",
+        "mobilesdk_app_id": "1:706143191898:android:f597b0a13e062d37596963",
         "android_client_info": {
           "package_name": "com.example.flutter_application_project"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAHF7TRRVP3Pvp62t0lNAyZvTuq4JhH6r8"
+          "current_key": "AIzaSyA_C0ZGi2vdUUZ10XWpCRAMZP30WK66lsk"
         }
       ],
       "services": {

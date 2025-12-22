@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'screens/login_screen.dart';
+import 'screens/test_yachts_screen.dart';
 import 'firebase_options.dart';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'screens/home_screen.dart'; 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -16,14 +16,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'University App',
-      theme: ThemeData(
-        primarySwatch: Colors.indigo,
-        useMaterial3: true,
-      ),
-      home: const LoginScreen(),
+      home: HomeScreen(),
+       // <-- your test screen here
     );
   }
 }
