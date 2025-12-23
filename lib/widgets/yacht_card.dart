@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 
 class YachtCard extends StatelessWidget {
   final String name;
-  final String type;
   final String location;
-  final int price;
+  final double price;
   final String imageUrl;
   final VoidCallback onTap;
 
   const YachtCard({
     super.key,
     required this.name,
-    required this.type,
     required this.location,
     required this.price,
     required this.imageUrl,
@@ -21,7 +19,7 @@ class YachtCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap, // ✅ whole card clickable
+      onTap: onTap,
       child: Container(
         margin: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -38,7 +36,7 @@ class YachtCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🖼 Yacht Image
+            // Image
             ClipRRect(
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(20)),
@@ -58,7 +56,7 @@ class YachtCard extends StatelessWidget {
               ),
             ),
 
-            // ℹ Yacht Info
+            // Yacht Info
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -71,10 +69,7 @@ class YachtCard extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(type, style: TextStyle(color: Colors.grey[600])),
                   const SizedBox(height: 6),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -86,8 +81,8 @@ class YachtCard extends StatelessWidget {
                           Text(location),
                         ],
                       ),
-                      Text(
-                        "\$$price / day",
+                                      Text(
+                                        "PKR ${price.toStringAsFixed(0)} / day",
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.green,

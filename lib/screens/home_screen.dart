@@ -1,106 +1,196 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../widgets/yacht_card.dart';
-import 'yacht_detail_screen.dart';
+import 'package:flutter/material.dart';
+import '../pages/admin_dashboard.dart';
+import '../models/yacht_model.dart';
+import '../screens/yacht_detail_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  List<Yacht> yachts = [];
+  bool isLoading = true;
+
+  static const Color primaryColor = Color(0xFF0A2540);
+  static const Color accentColor = Color(0xFF1CB5E0);
+  static const Color bgColor = Color(0xFFF5F7FA);
+
+  @override
+  void initState() {
+    super.initState();
+    fetchYachts();
+  }
+
+  Future<void> fetchYachts() async {
+    try {
+      final snapshot = await _firestore.collection('yachts').get();
+
+      final loadedYachts = snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Yacht(
+          id: doc.id,
+          name: data['name'] ?? '',
+          location: data['location'] ?? '',
+          imageUrl: data['imageUrl'] ?? '',
+          description: data['description'] ?? '',
+          pricePerDay: (data['pricePerDay'] ?? 0).toDouble(),
+          capacity: data['capacity'] ?? 0,
+          available: data['available'] ?? false,
+        );
+      }).toList();
+
+      setState(() {
+        yachts = loadedYachts;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error: $e');
+      setState(() => isLoading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-
-    // Responsive grid columns
-    int crossAxisCount = 1;
-    if (width > 600) crossAxisCount = 2;
-    if (width > 1000) crossAxisCount = 3;
-
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xffa1c4fd), Color(0xffc2e9fb)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+      backgroundColor: bgColor,
+      appBar: AppBar(
+        backgroundColor: primaryColor,
+        title: const Text(
+          'Luxury Yachts',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 16),
-              const Text(
-                "Luxury Yachts",
-                style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: StreamBuilder(
-                  stream: FirebaseFirestore.instance
-                      .collection('yachts')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
+        centerTitle: true,
+        actions: [
+          IconButton(
+  tooltip: 'Admin Dashboard',
+  icon: const Icon(
+    Icons.admin_panel_settings,
+    color: Colors.white, // set icon color to white
+  ),
+  onPressed: () {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const AdminDashboard()),
+    );
+  },
+),
+        ],
+      ),
 
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return const Center(
-                          child: Text(
-                        "No yachts available",
-                        style: TextStyle(color: Colors.white),
-                      ));
-                    }
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : yachts.isEmpty
+              ? const Center(child: Text('No yachts available'))
+              : ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: yachts.length,
+                  itemBuilder: (context, index) {
+                    final yacht = yachts[index];
 
-                    final yachts = snapshot.data!.docs;
-
-                    return GridView.builder(
-                      padding: const EdgeInsets.all(10),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        childAspectRatio: 0.75,
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 10,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
                       ),
-                      itemCount: yachts.length,
-                      itemBuilder: (context, index) {
-                        final data =
-                            yachts[index].data() as Map<String, dynamic>;
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => YachtDetailScreen(
+                                id: yacht.id,
+                                name: yacht.name,
+                                location: yacht.location,
+                                imageUrl: yacht.imageUrl,
+                                description: yacht.description,
+                                price: yacht.pricePerDay.toInt(),
+                              ),
+                            ),
+                          );
+                        },
+                        child: Row(
+                          children: [
+                            // IMAGE
+                            ClipRRect(
+                              borderRadius: const BorderRadius.horizontal(
+                                left: Radius.circular(16),
+                              ),
+                              child: Image.network(
+                                yacht.imageUrl,
+                                width: 120,
+                                height: 110,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    const Icon(Icons.image_not_supported, size: 50),
+                              ),
+                            ),
 
-                        return YachtCard(
-                          name: data['name'] ?? 'No Name',
-                          type: data['type'] ?? 'Unknown',
-                          location: data['location'] ?? 'Unknown',
-                          price: (data['pricePerDay'] ?? 0).toInt(),
-                          imageUrl:
-                              data['imageUrl'] ?? 'https://picsum.photos/500/300',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => YachtDetailScreen(
-                                  name: data['name'] ?? 'No Name',
-                                  type: data['type'] ?? 'Unknown',
-                                  location: data['location'] ?? 'Unknown',
-                                  price: (data['pricePerDay'] ?? 0).toInt(),
-                                  imageUrl: data['imageUrl'] ??
-                                      'https://picsum.photos/500/300',
-                                  description: data['description'] ??
-                                      'Luxury yacht with premium facilities.',
+                            // CONTENT
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      yacht.name,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      yacht.location,
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'PKR ${yacht.pricePerDay.toInt()}/day',
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: accentColor,
+                                          ),
+                                        ),
+                                        Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 16,
+                                          color: Colors.grey.shade500,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
-                            );
-                          },
-                        );
-                      },
+                            ),
+                          ],
+                        ),
+                      ),
                     );
                   },
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

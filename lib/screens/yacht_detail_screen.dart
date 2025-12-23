@@ -3,8 +3,9 @@ import '../models/booking_model.dart';
 import '../services/booking_service.dart';
 
 class YachtDetailScreen extends StatefulWidget {
+  final String id;
   final String name;
-  final String type;
+  final String? type;
   final String location;
   final int price;
   final String imageUrl;
@@ -12,8 +13,9 @@ class YachtDetailScreen extends StatefulWidget {
 
   const YachtDetailScreen({
     super.key,
+    required this.id,
     required this.name,
-    required this.type,
+    this.type,
     required this.location,
     required this.price,
     required this.imageUrl,
@@ -29,7 +31,11 @@ class _YachtDetailScreenState extends State<YachtDetailScreen> {
   DateTime? endDate;
   double totalPrice = 0;
 
-  // Pick start date
+  // Custom colors
+  final Color navyColor = const Color(0xFF0A2540);
+  final Color tealColor = const Color(0xFF1CB5E0);
+  final Color bgColor = const Color(0xFFF5F7FA);
+
   Future<void> pickStartDate() async {
     final today = DateTime.now();
     final date = await showDatePicker(
@@ -50,7 +56,6 @@ class _YachtDetailScreenState extends State<YachtDetailScreen> {
     }
   }
 
-  // Pick end date
   Future<void> pickEndDate() async {
     if (startDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -74,7 +79,6 @@ class _YachtDetailScreenState extends State<YachtDetailScreen> {
     }
   }
 
-  // Calculate total price based on days
   void calculateTotalPrice() {
     if (startDate != null && endDate != null) {
       final days = endDate!.difference(startDate!).inDays + 1;
@@ -84,21 +88,33 @@ class _YachtDetailScreenState extends State<YachtDetailScreen> {
     }
   }
 
+  String formatDate(DateTime? date) {
+    if (date == null) return '';
+    return "${date.day}-${date.month}-${date.year}";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: bgColor,
       appBar: AppBar(
-        title: Text(widget.name),
+        title: Text(
+          widget.name,
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         centerTitle: true,
+        backgroundColor: navyColor,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // Full-width image
             Image.network(
               widget.imageUrl,
-              height: 250,
               width: double.infinity,
-              fit: BoxFit.cover,
+              fit: BoxFit.fitWidth,
             ),
             const SizedBox(height: 16),
             Padding(
@@ -107,37 +123,59 @@ class _YachtDetailScreenState extends State<YachtDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(widget.name,
-                      style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold)),
+                      style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: navyColor)),
                   const SizedBox(height: 8),
-                  Text(widget.type),
+                  if (widget.type != null)
+                    Text(widget.type!,
+                        style: const TextStyle(
+                            fontSize: 16, color: Colors.grey)),
                   const SizedBox(height: 4),
-                  Text(widget.location),
+                  Text(widget.location,
+                      style: const TextStyle(fontSize: 16, color: Colors.grey)),
                   const SizedBox(height: 16),
                   Text("Price per day: \$${widget.price}",
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green)),
+                          color: tealColor)),
                   const SizedBox(height: 16),
-                  Text(widget.description),
+                  Text(widget.description, style: const TextStyle(fontSize: 16)),
                   const SizedBox(height: 24),
 
                   // Date Pickers
                   Row(
                     children: [
-                      ElevatedButton(
-                        onPressed: pickStartDate,
-                        child: Text(startDate == null
-                            ? "Select Start Date"
-                            : "${startDate!.day}-${startDate!.month}-${startDate!.year}"),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: pickStartDate,
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: tealColor,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8))),
+                          child: Text(
+                              startDate == null
+                                  ? "Select Start Date"
+                                  : formatDate(startDate),
+                              style: const TextStyle(fontSize: 16)),
+                        ),
                       ),
                       const SizedBox(width: 16),
-                      ElevatedButton(
-                        onPressed: pickEndDate,
-                        child: Text(endDate == null
-                            ? "Select End Date"
-                            : "${endDate!.day}-${endDate!.month}-${endDate!.year}"),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: pickEndDate,
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: tealColor,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8))),
+                          child: Text(
+                              endDate == null
+                                  ? "Select End Date"
+                                  : formatDate(endDate),
+                              style: const TextStyle(fontSize: 16)),
+                        ),
                       ),
                     ],
                   ),
@@ -148,10 +186,10 @@ class _YachtDetailScreenState extends State<YachtDetailScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       child: Text(
                         "Total Price: \$${totalPrice.toStringAsFixed(2)}",
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.green),
+                            color: tealColor),
                       ),
                     ),
 
@@ -163,15 +201,15 @@ class _YachtDetailScreenState extends State<YachtDetailScreen> {
                         if (startDate == null || endDate == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text(
-                                    "Please select start and end dates")),
+                                content:
+                                    Text("Please select start and end dates")),
                           );
                           return;
                         }
 
                         Booking myBooking = Booking(
-                          userId: "user_001", // replace with actual user ID
-                          yachtId: widget.name, // replace with actual yacht ID
+                          userId: "user_001",
+                          yachtId: widget.id,
                           bookingDate: startDate!,
                           startTime: startDate!,
                           endTime: endDate!,
@@ -183,8 +221,7 @@ class _YachtDetailScreenState extends State<YachtDetailScreen> {
                           await BookingService().addBooking(myBooking);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content:
-                                    Text("Booking added successfully!")),
+                                content: Text("Booking added successfully!")),
                           );
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
