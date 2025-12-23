@@ -7,18 +7,24 @@ class AdminBookingPage extends StatelessWidget {
   final Color navyColor = const Color(0xFF0A2540);
   final Color bgColor = const Color(0xFFF5F7FA);
 
+  // Function to fetch yacht name from yachtId
+  Future<String> getYachtName(String yachtId) async {
+    final doc = await FirebaseFirestore.instance.collection('yachts').doc(yachtId).get();
+    return doc['name'] ?? yachtId; // fallback to ID if name not found
+  }
+
+  // Function to fetch user email from userId
+  Future<String> getUserEmail(String userId) async {
+    final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    return doc['email'] ?? userId; // fallback to ID if email not found
+  }
+
   @override
   Widget build(BuildContext context) {
     final bookingsCollection = FirebaseFirestore.instance.collection('bookings');
 
     return Scaffold(
       backgroundColor: bgColor,
-    //   appBar: AppBar(
-    //     title: const Text("All Bookings", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-    //     backgroundColor: navyColor,
-    //     centerTitle: true,
-    //     iconTheme: const IconThemeData(color: Colors.white),
-    //   ),
       body: StreamBuilder<QuerySnapshot>(
         stream: bookingsCollection.orderBy('timestamp', descending: true).snapshots(),
         builder: (context, snapshot) {
@@ -54,8 +60,25 @@ class AdminBookingPage extends StatelessWidget {
                       Text("Booking ID: ${bookings[index].id}",
                           style: const TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      Text("User ID: ${data['userId']}"),
-                      Text("Yacht ID: ${data['yachtId']}"),
+
+                      // User Email
+                      FutureBuilder<String>(
+                        future: getUserEmail(data['userId']),
+                        builder: (context, snapshot) {
+                          final userEmail = snapshot.data ?? data['userId'];
+                          return Text("User: $userEmail");
+                        },
+                      ),
+
+                      // Yacht Name
+                      FutureBuilder<String>(
+                        future: getYachtName(data['yachtId']),
+                        builder: (context, snapshot) {
+                          final yachtName = snapshot.data ?? data['yachtId'];
+                          return Text("Yacht: $yachtName");
+                        },
+                      ),
+
                       const SizedBox(height: 4),
                       Text("Booking Date: $bookingDate"),
                       Text("Start Time: $startTime"),
