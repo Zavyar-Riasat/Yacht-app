@@ -15,22 +15,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final passwordController = TextEditingController();
   final AuthService _auth = AuthService();
 
-  void register() async {
-    try {
-      await _auth.register(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-        name: nameController.text.trim(),
-      );
+ void register() async {
+  try {
+    await _auth.register(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+      name: nameController.text.trim(),
+    );
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => HomeScreen()),
-      );
-    } catch (e) {
-      showError("Registration failed. Please try again.");
-    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
+  } catch (e) {
+    showError("Registration failed. Please try again.");
   }
+}
+
 
   void showError(String msg) {
     showDialog(

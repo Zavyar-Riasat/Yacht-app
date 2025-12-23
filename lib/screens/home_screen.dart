@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../pages/admin_dashboard.dart';
 import '../models/yacht_model.dart';
 import '../screens/yacht_detail_screen.dart';
+import '../screens/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,9 +16,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   List<Yacht> yachts = [];
   bool isLoading = true;
+  String userRole = 'user'; // default role
 
   static const Color primaryColor = Color(0xFF0A2540);
   static const Color accentColor = Color(0xFF1CB5E0);
@@ -24,9 +29,24 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    fetchUserRole();
     fetchYachts();
   }
 
+  // 🔹 Fetch current user's role
+  Future<void> fetchUserRole() async {
+    try {
+      final uid = _auth.currentUser!.uid;
+      final doc = await _firestore.collection('users').doc(uid).get();
+      setState(() {
+        userRole = doc['role'] ?? 'user';
+      });
+    } catch (e) {
+      debugPrint('Error fetching user role: $e');
+    }
+  }
+
+  // 🔹 Fetch yachts
   Future<void> fetchYachts() async {
     try {
       final snapshot = await _firestore.collection('yachts').get();
@@ -55,31 +75,66 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // 🔹 Logout
+  Future<void> logout(BuildContext context) async {
+    await _auth.signOut();
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: primaryColor,
+        centerTitle: true,
         title: const Text(
           'Luxury Yachts',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
-        centerTitle: true,
         actions: [
+          // 🔹 Admin Dashboard button (only for admin)
+          if (userRole == 'admin')
+            IconButton(
+              tooltip: 'Admin Dashboard',
+              icon: const Icon(
+                Icons.admin_panel_settings,
+                color: Colors.white,
+              ),
+              onPressed: () async {
+                // Double-check role before navigating
+                final uid = _auth.currentUser!.uid;
+                final doc = await _firestore.collection('users').doc(uid).get();
+                if (doc['role'] == 'admin') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AdminDashboard()),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Access denied')),
+                  );
+                }
+              },
+            ),
+
+          // 🔹 Logout button
           IconButton(
-  tooltip: 'Admin Dashboard',
-  icon: const Icon(
-    Icons.admin_panel_settings,
-    color: Colors.white, // set icon color to white
-  ),
-  onPressed: () {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const AdminDashboard()),
-    );
-  },
-),
+            tooltip: 'Logout',
+            icon: const Icon(
+              Icons.logout,
+              color: Colors.white,
+            ),
+            onPressed: () => logout(context),
+          ),
         ],
       ),
 
@@ -136,7 +191,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 height: 110,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) =>
-                                    const Icon(Icons.image_not_supported, size: 50),
+                                    const Icon(
+                                  Icons.image_not_supported,
+                                  size: 50,
+                                ),
                               ),
                             ),
 

@@ -11,32 +11,40 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
   final AuthService _auth = AuthService();
 
-  void login() async {
+  Future<void> login() async {
     try {
+      // Default login, role is not checked here
       await _auth.login(
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
 
+      // Navigate to HomeScreen by default
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => HomeScreen()),
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     } catch (e) {
       showError("Invalid email or password");
     }
   }
 
-  void showError(String msg) {
+  void showError(String message) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Login Failed"),
-        content: Text(msg),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
       ),
     );
   }
@@ -140,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       const SizedBox(height: 16),
 
-                      // Register Link
+                      // Register
                       TextButton(
                         onPressed: () {
                           Navigator.push(
