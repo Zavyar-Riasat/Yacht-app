@@ -29,6 +29,17 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Protect route: if not authenticated, send to login
+    if (_auth.currentUser == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      });
+      return;
+    }
+
     fetchUserRole();
     fetchYachts();
   }

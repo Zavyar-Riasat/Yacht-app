@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/booking_model.dart';
 import '../services/booking_service.dart';
+import '../services/auth_service.dart';
 
 class YachtDetailScreen extends StatefulWidget {
   final String id;
@@ -30,6 +32,7 @@ class _YachtDetailScreenState extends State<YachtDetailScreen> {
   DateTime? startDate;
   DateTime? endDate;
   double totalPrice = 0;
+  String userRole = 'user';
 
   // Custom colors
   final Color navyColor = const Color(0xFF0A2540);
@@ -198,38 +201,56 @@ class _YachtDetailScreenState extends State<YachtDetailScreen> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () async {
-                        if (startDate == null || endDate == null) {
+                        // Prevent booking if user is not authenticated
+                        final user = FirebaseAuth.instance.currentUser;
+                        if (user == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text("Please select start and end dates")),
+                            const SnackBar(content: Text('Please login to book')),
                           );
                           return;
                         }
 
+                        // Check role; admins are not allowed to book
+                        final role = await AuthService().getUserRole(user.uid);
+                        if (role == 'admin') {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Admins cannot make bookings')),
+                          );
+                          return;
+                        }
+
+                        if (startDate == null || endDate == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please select start and end dates')),
+                          );
+                          return;
+                        }
+
+                        final email = user.email ?? 'unknown@example.com';
+
+                        // Create Booking
                         Booking myBooking = Booking(
-                          userId: "user_001",
-                          yachtId: widget.id,
+                          userEmail: email,
+                          yachtName: widget.name,
                           bookingDate: startDate!,
                           startTime: startDate!,
                           endTime: endDate!,
                           totalPrice: totalPrice,
-                          status: "pending",
+                          status: 'pending',
                         );
 
                         try {
                           await BookingService().addBooking(myBooking);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text("Booking added successfully!")),
+                            const SnackBar(content: Text('Booking added successfully!')),
                           );
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Booking failed: $e")),
+                            SnackBar(content: Text('Booking failed: $e')),
                           );
                         }
                       },
-                      child: const Text("Book Now"),
+                      child: const Text('Book Now'),
                     ),
                   ),
                 ],

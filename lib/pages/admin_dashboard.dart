@@ -6,9 +6,12 @@ import '../screens/home_screen.dart';
 import 'add_yacht.dart';
 import 'edit_yacht.dart';
 import 'admin_booking_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/auth_service.dart';
+import '../screens/login_screen.dart';
 
 class AdminDashboard extends StatefulWidget {
-  const AdminDashboard({Key? key}) : super(key: key);
+  const AdminDashboard({super.key});
 
   @override
   State<AdminDashboard> createState() => _AdminDashboardState();
@@ -23,11 +26,40 @@ class _AdminDashboardState extends State<AdminDashboard> {
   void initState() {
     super.initState();
     yachtsFuture = YachtService.getAllYachts();
+    verifyAdmin();
   }
 
   void refreshList() {
     setState(() {
       yachtsFuture = YachtService.getAllYachts();
+    });
+  }
+
+  /// Ensure only admin users can stay on this page.
+  void verifyAdmin() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+        return;
+      }
+
+      final role = await AuthService().getUserRole(user.uid);
+      if (role != 'admin') {
+        // Not an admin — redirect to user home
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Access denied: Admins only')),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
+      }
     });
   }
 

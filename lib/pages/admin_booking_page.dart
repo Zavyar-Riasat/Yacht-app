@@ -49,50 +49,34 @@ class AdminBookingPage extends StatelessWidget {
               final timestamp = (data['timestamp'] as Timestamp).toDate();
 
               return Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Booking ID: ${bookings[index].id}",
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
+  margin: const EdgeInsets.only(bottom: 16),
+  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  elevation: 4,
+  child: Padding(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Booking ID: ${bookings[index].id}",
+            style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Text("User Email: ${data['userId']}"),
+        Text("Yacht Name: ${data['yachtId']}"),
+        const SizedBox(height: 4),
+        Text("Booking Date: $bookingDate"),
+        Text("Start Time: $startTime"),
+        Text("End Time: $endTime"),
+        const SizedBox(height: 4),
+        Text("Total Price: \$${data['totalPrice']}"),
+        Text("Status: ${data['status']}"),
+        const SizedBox(height: 4),
+        Text("Created at: $timestamp",
+            style: const TextStyle(fontSize: 12, color: Colors.grey)),
+      ],
+    ),
+  ),
+);
 
-                      // User Email
-                      FutureBuilder<String>(
-                        future: getUserEmail(data['userId']),
-                        builder: (context, snapshot) {
-                          final userEmail = snapshot.data ?? data['userId'];
-                          return Text("User: $userEmail");
-                        },
-                      ),
-
-                      // Yacht Name
-                      FutureBuilder<String>(
-                        future: getYachtName(data['yachtId']),
-                        builder: (context, snapshot) {
-                          final yachtName = snapshot.data ?? data['yachtId'];
-                          return Text("Yacht: $yachtName");
-                        },
-                      ),
-
-                      const SizedBox(height: 4),
-                      Text("Booking Date: $bookingDate"),
-                      Text("Start Time: $startTime"),
-                      Text("End Time: $endTime"),
-                      const SizedBox(height: 4),
-                      Text("Total Price: \$${data['totalPrice']}"),
-                      Text("Status: ${data['status']}"),
-                      const SizedBox(height: 4),
-                      Text("Created at: $timestamp",
-                          style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                    ],
-                  ),
-                ),
-              );
             },
           );
         },

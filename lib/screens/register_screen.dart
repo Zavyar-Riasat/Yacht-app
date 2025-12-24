@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'home_screen.dart';
+import '../pages/admin_dashboard.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -23,10 +25,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
       name: nameController.text.trim(),
     );
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-    );
+    // After registration the user is signed in. Fetch role and navigate.
+    final user = FirebaseAuth.instance.currentUser;
+    final uid = user?.uid;
+
+    if (uid == null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+      return;
+    }
+
+    final role = await AuthService().getUserRole(uid);
+
+    if (role == 'admin') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const AdminDashboard()),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    }
   } catch (e) {
     showError("Registration failed. Please try again.");
   }

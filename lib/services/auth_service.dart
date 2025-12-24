@@ -47,4 +47,23 @@ class AuthService {
   Future<void> logout() async {
     await _auth.signOut();
   }
+
+  /// Fetches the role for a given user id from Firestore.
+  /// Returns the role string (e.g. 'admin' or 'user').
+  /// If the user doc or role field doesn't exist, returns 'user' as default.
+  Future<String> getUserRole(String uid) async {
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null && data['role'] != null) {
+          return data['role'] as String;
+        }
+      }
+      return 'user';
+    } catch (e) {
+      // In case of any error, default to 'user' to avoid accidental admin grant.
+      return 'user';
+    }
+  }
 }

@@ -4,7 +4,7 @@ import '../services/yacht_service.dart';
 
 class EditYachtPage extends StatefulWidget {
   final Yacht yacht;
-  const EditYachtPage({Key? key, required this.yacht}) : super(key: key);
+  const EditYachtPage({super.key, required this.yacht});
 
   @override
   State<EditYachtPage> createState() => _EditYachtPageState();

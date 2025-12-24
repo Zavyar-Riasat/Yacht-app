@@ -3,7 +3,7 @@ import '../models/yacht_model.dart';
 import '../services/yacht_service.dart';
 
 class AddYachtPage extends StatefulWidget {
-  const AddYachtPage({Key? key}) : super(key: key);
+  const AddYachtPage({super.key});
 
   @override
   State<AddYachtPage> createState() => _AddYachtPageState();
@@ -83,8 +83,8 @@ class _AddYachtPageState extends State<AddYachtPage> {
                     Navigator.pop(context);
                   }
                 },
-                child: const Text("Add Yacht"),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                child: const Text("Add Yacht"),
               )
             ],
           ),

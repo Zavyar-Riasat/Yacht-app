@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
+import '../pages/admin_dashboard.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,11 +25,28 @@ class _LoginScreenState extends State<LoginScreen> {
         password: passwordController.text.trim(),
       );
 
-      // Navigate to HomeScreen by default
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      // After successful login, fetch role and redirect accordingly
+      final user = FirebaseAuth.instance.currentUser;
+      final uid = user?.uid;
+
+      if (uid == null) {
+        showError('Unable to determine user after login.');
+        return;
+      }
+
+      final role = await AuthService().getUserRole(uid);
+
+      if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboard()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
     } catch (e) {
       showError("Invalid email or password");
     }
