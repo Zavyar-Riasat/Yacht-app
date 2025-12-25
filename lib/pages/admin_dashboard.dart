@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/yacht_model.dart';
 import '../services/yacht_service.dart';
-import '../widgets/yacht_card.dart';
 import '../screens/home_screen.dart';
 import 'add_yacht.dart';
 import 'edit_yacht.dart';
@@ -19,9 +18,9 @@ class AdminDashboard extends StatefulWidget {
 
 class _AdminDashboardState extends State<AdminDashboard> {
   late Future<List<Yacht>> yachtsFuture;
-  int _currentIndex = 0; // 0 = Yachts, 1 = Bookings
-  final Color tealColor = const Color(0xFF1CB5E0);
-
+  int _currentIndex = 0;
+ final Color tealColor = const Color(0xFF1CB5E0);
+ 
   @override
   void initState() {
     super.initState();
@@ -35,7 +34,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     });
   }
 
-  /// Ensure only admin users can stay on this page.
   void verifyAdmin() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final user = FirebaseAuth.instance.currentUser;
@@ -50,7 +48,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
       final role = await AuthService().getUserRole(user.uid);
       if (role != 'admin') {
-        // Not an admin — redirect to user home
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Access denied: Admins only')),
@@ -64,63 +61,237 @@ class _AdminDashboardState extends State<AdminDashboard> {
     });
   }
 
-  // Yacht list page
   Widget yachtsPage() {
+    final isLargeScreen = MediaQuery.of(context).size.width > 768;
+
     return FutureBuilder<List<Yacht>>(
       future: yachtsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.teal),
+          );
         } else if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error, size: 60, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  "Error loading yachts",
+                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text("No yachts available"));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.directions_boat, size: 60, color: Colors.grey[400]),
+                const SizedBox(height: 16),
+                Text(
+                  "No yachts available",
+                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          );
         } else {
           final yachts = snapshot.data!;
-          return ListView.builder(
-            padding: const EdgeInsets.only(bottom: 80),
-            itemCount: yachts.length,
-            itemBuilder: (context, index) {
-              final yacht = yachts[index];
-              return Stack(
-                children: [
-                  YachtCard(
-                    name: yacht.name,
-                    location: yacht.location,
-                    price: yacht.pricePerDay,
-                    imageUrl: yacht.imageUrl,
-                    onTap: () {},
+          return Container(
+            padding: EdgeInsets.all(isLargeScreen ? 20 : 16),
+            child: ListView.builder(
+              itemCount: yachts.length,
+              itemBuilder: (context, index) {
+                final yacht = yachts[index];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  Positioned(
-                    top: 10,
-                    right: 20,
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => EditYachtPage(yacht: yacht),
+                  child: Row(
+                    children: [
+                      // Yacht Image
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(12),
+                            bottomLeft: Radius.circular(12),
+                          ),
+                          image: yacht.imageUrl.isNotEmpty
+                              ? DecorationImage(
+                                  image: NetworkImage(yacht.imageUrl),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                          color: Colors.grey[200],
+                        ),
+                        child: yacht.imageUrl.isEmpty
+                            ? Center(
+                                child: Icon(
+                                  Icons.directions_boat,
+                                  size: 40,
+                                  color: Colors.grey[400],
+                                ),
+                              )
+                            : null,
+                      ),
+
+                      // Yacht Details
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      yacht.name,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Text(
+                                    '\$${yacht.pricePerDay.toStringAsFixed(0)}/day',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.teal[700],
+                                    ),
+                                  ),
+                                ],
                               ),
-                            );
-                            refreshList();
-                          },
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Icon(Icons.location_on,
+                                      size: 16, color: Colors.grey[600]),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      yacht.location,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[700],
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Capacity: ${yacht.capacity} people',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () async {
-                            await YachtService.deleteYacht(yacht.id);
-                            refreshList();
-                          },
+                      ),
+
+                      // Action Buttons (Visible!)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Column(
+                          children: [
+                            // Edit Button
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                onPressed: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => EditYachtPage(yacht: yacht),
+                                    ),
+                                  );
+                                  refreshList();
+                                },
+                                icon: const Icon(Icons.edit, size: 20, color: Colors.white),
+                                padding: EdgeInsets.zero,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            
+                            // Delete Button
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                onPressed: () async {
+                                  bool confirm = await showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Delete Yacht'),
+                                      content: Text(
+                                          'Are you sure you want to delete "${yacht.name}"?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
+                                          style: TextButton.styleFrom(
+                                            backgroundColor: Colors.red,
+                                            foregroundColor: Colors.white,
+                                          ),
+                                          child: const Text('Delete'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirm == true) {
+                                    await YachtService.deleteYacht(yacht.id);
+                                    refreshList();
+                                  }
+                                },
+                                icon: const Icon(Icons.delete, size: 20, color: Colors.white),
+                                padding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  )
-                ],
-              );
-            },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           );
         }
       },
@@ -131,35 +302,37 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Admin Dashboard"),
-        backgroundColor: tealColor,
+        title: Text(
+          _currentIndex == 0 ? 'Yachts Management' : 'Bookings',
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: Colors.teal,
+        centerTitle: true,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.only(right: 16),
             child: InkWell(
-              borderRadius: BorderRadius.circular(30),
               onTap: () {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (_) => const HomeScreen()),
                 );
               },
-                child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(38, 255, 255, 255),
-                  borderRadius: BorderRadius.circular(30),
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.directions_boat, color: Colors.white, size: 18),
+                    Icon(Icons.person, size: 18, color: Colors.white),
                     SizedBox(width: 6),
                     Text(
                       'User View',
                       style: TextStyle(
                         color: Colors.white,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
@@ -169,8 +342,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
         ],
       ),
-
-      // Body changes based on bottom navigation
+       // Body changes based on bottom navigation
       body: _currentIndex == 0 ? yachtsPage() : const AdminBookingPage(),
 
       // Floating button only on Yachts page
@@ -189,40 +361,40 @@ class _AdminDashboardState extends State<AdminDashboard> {
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
-      // Bottom navigation bar
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 6,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            TextButton.icon(
-              onPressed: () {
-                setState(() {
-                  _currentIndex = 0;
-                });
-              },
-              icon: const Icon(Icons.directions_boat,
-                  color: Colors.black87), // Icon color
-              label: const Text(
-                "Yachts",
-                style: TextStyle(color: Colors.black87),
-              ),
-            ),
-            TextButton.icon(
-              onPressed: () {
-                setState(() {
-                  _currentIndex = 1;
-                });
-              },
-              icon: const Icon(Icons.receipt_long, color: Colors.black87),
-              label: const Text(
-                "Bookings",
-                style: TextStyle(color: Colors.black87),
-              ),
+ 
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
             ),
           ],
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.directions_boat),
+              label: 'Yachts',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.receipt_long),
+              label: 'Bookings',
+            ),
+          ],
+          backgroundColor: Colors.white,
+          selectedItemColor: Colors.teal,
+          unselectedItemColor: Colors.grey[600],
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+          showSelectedLabels: true,
+          showUnselectedLabels: true,
         ),
       ),
     );
