@@ -36,6 +36,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final role = await AuthService().getUserRole(uid);
 
+      if (!mounted) return;
+
       if (role == 'admin') {
         Navigator.pushReplacement(
           context,

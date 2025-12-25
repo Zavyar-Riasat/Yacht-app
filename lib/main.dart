@@ -4,9 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'firebase_options.dart';
 import 'screens/login_screen.dart';
-import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'pages/admin_dashboard.dart';
+import 'screens/user_dashboard.dart';
 import 'services/auth_service.dart';
 
 Future<void> main() async {
@@ -27,6 +27,9 @@ class MyApp extends StatelessWidget {
       title: 'Yacht App',
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.teal),
       home: const AuthGate(),
+      routes: {
+        '/user-dashboard': (_) => const UserDashboard(),
+      },
     );
   }
 }

@@ -25,13 +25,13 @@ class YachtCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
+                boxShadow: [
+                          BoxShadow(
+                            color: const Color.fromARGB(38, 0, 0, 0),
+                            blurRadius: 10,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

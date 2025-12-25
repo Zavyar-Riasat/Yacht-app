@@ -30,6 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final uid = user?.uid;
 
     if (uid == null) {
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -38,6 +39,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     final role = await AuthService().getUserRole(uid);
+
+    if (!mounted) return;
 
     if (role == 'admin') {
       Navigator.pushReplacement(

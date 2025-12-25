@@ -115,6 +115,8 @@ class _EditYachtPageState extends State<EditYachtPage> {
                 ),
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
+                    // capture navigator before awaiting to avoid using context after await
+                    final navigator = Navigator.of(context);
                     await YachtService.updateYacht(
                       Yacht(
                         id: widget.yacht.id,
@@ -131,7 +133,8 @@ class _EditYachtPageState extends State<EditYachtPage> {
                       ),
                     );
 
-                    Navigator.pop(context);
+                    if (!mounted) return;
+                    navigator.pop();
                   }
                 },
                 child: const Text("Update Yacht"),

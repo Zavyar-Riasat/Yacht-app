@@ -31,9 +31,12 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // Protect route: if not authenticated, send to login
     if (_auth.currentUser == null) {
+      // Capture navigator before the async/post-frame callback to avoid using
+      // BuildContext across an async gap.
+      final navigator = Navigator.of(context);
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.pushReplacement(
-          context,
+        if (!mounted) return;
+        navigator.pushReplacement(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
       });
@@ -88,10 +91,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // 🔹 Logout
   Future<void> logout(BuildContext context) async {
+    // Capture navigator before awaiting to avoid using BuildContext across async gaps
+    final navigator = Navigator.of(context);
     await _auth.signOut();
 
-    Navigator.pushAndRemoveUntil(
-      context,
+    navigator.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,
     );
@@ -123,17 +127,28 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () async {
                 // Double-check role before navigating
                 final uid = _auth.currentUser!.uid;
+                // capture navigator/messenger before the async call to avoid using context after await
+                final messenger = ScaffoldMessenger.of(context);
+                final navigator = Navigator.of(context);
                 final doc = await _firestore.collection('users').doc(uid).get();
+                if (!mounted) return;
                 if (doc['role'] == 'admin') {
-                  Navigator.push(
-                    context,
+                  navigator.push(
                     MaterialPageRoute(builder: (_) => const AdminDashboard()),
                   );
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Access denied')),
-                  );
+                  messenger.showSnackBar(const SnackBar(content: Text('Access denied')));
                 }
+              },
+            ),
+
+          // 🔹 My Dashboard (only for regular users)
+          if (userRole == 'user')
+            IconButton(
+              tooltip: 'My Dashboard',
+              icon: const Icon(Icons.receipt_long, color: Colors.white),
+              onPressed: () {
+                Navigator.pushNamed(context, '/user-dashboard');
               },
             ),
 
@@ -166,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
+                            color: const Color.fromARGB(20, 0, 0, 0),
                             blurRadius: 10,
                             offset: const Offset(0, 6),
                           ),

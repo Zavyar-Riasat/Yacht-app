@@ -211,41 +211,49 @@ class _YachtDetailScreenState extends State<YachtDetailScreen> {
                         }
 
                         // Check role; admins are not allowed to book
+                        final messenger = ScaffoldMessenger.of(context);
+                        final navigator = Navigator.of(context);
                         final role = await AuthService().getUserRole(user.uid);
                         if (role == 'admin') {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          messenger.showSnackBar(
                             const SnackBar(content: Text('Admins cannot make bookings')),
                           );
                           return;
                         }
 
                         if (startDate == null || endDate == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          // Use captured messenger to avoid calling ScaffoldMessenger.of(context)
+                          // after an await (build-context across async gaps).
+                          messenger.showSnackBar(
                             const SnackBar(content: Text('Please select start and end dates')),
                           );
                           return;
                         }
 
-                        final email = user.email ?? 'unknown@example.com';
-
-                        // Create Booking
-                        Booking myBooking = Booking(
-                          userEmail: email,
+                        // Create booking model and persist, include yacht snapshot fields
+                        final booking = BookingModel(
+                          userId: user.uid,
+                          yachtId: widget.id,
                           yachtName: widget.name,
-                          bookingDate: startDate!,
-                          startTime: startDate!,
-                          endTime: endDate!,
-                          totalPrice: totalPrice,
+                          yachtImage: widget.imageUrl,
+                          yachtLocation: widget.location,
+                          pricePerDay: widget.price.toDouble(),
+                          // Use current time as bookingDate (server timestamp stored separately)
+                          bookingDate: DateTime.now(),
                           status: 'pending',
                         );
 
                         try {
-                          await BookingService().addBooking(myBooking);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Booking added successfully!')),
+                          await BookingService().createBooking(booking);
+                          messenger.showSnackBar(
+                            const SnackBar(content: Text('Booking created — pending approval')),
                           );
+
+                          if (!mounted) return;
+                          // Navigate to user dashboard to view bookings
+                          navigator.pushReplacementNamed('/user-dashboard');
                         } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          messenger.showSnackBar(
                             SnackBar(content: Text('Booking failed: $e')),
                           );
                         }

@@ -40,6 +40,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -143,11 +144,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   MaterialPageRoute(builder: (_) => const HomeScreen()),
                 );
               },
-              child: Container(
+                child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: const Color.fromARGB(38, 255, 255, 255),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: const Row(

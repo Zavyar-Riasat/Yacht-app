@@ -70,6 +70,8 @@ class _AddYachtPageState extends State<AddYachtPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
+                    // capture navigator before awaiting to avoid using context after await
+                    final navigator = Navigator.of(context);
                     await YachtService.addYacht(Yacht(
                       id: "yacht_${DateTime.now().millisecondsSinceEpoch}",
                       name: nameController.text,
@@ -80,7 +82,8 @@ class _AddYachtPageState extends State<AddYachtPage> {
                       description: descController.text,
                       available: true,
                     ));
-                    Navigator.pop(context);
+                    if (!mounted) return;
+                    navigator.pop();
                   }
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
