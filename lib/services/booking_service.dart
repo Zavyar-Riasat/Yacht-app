@@ -70,4 +70,9 @@ class BookingService {
   Future<void> updateBookingStatus(String bookingId, String status) async {
     await bookings.doc(bookingId).update({'status': status});
   }
+
+  /// Cancel (delete) a booking by id.
+  Future<void> cancelBooking(String bookingId) async {
+    await bookings.doc(bookingId).delete();
+  }
 }

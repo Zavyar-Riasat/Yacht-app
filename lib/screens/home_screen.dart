@@ -19,8 +19,10 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   List<Yacht> yachts = [];
+  List<Yacht> filteredYachts = [];
   bool isLoading = true;
   String userRole = 'user'; // default role
+  final TextEditingController searchController = TextEditingController();
 
   static const Color primaryColor = Color(0xFF0A2540);
   static const Color accentColor = Color(0xFF1CB5E0);
@@ -45,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     fetchUserRole();
     fetchYachts();
+    searchController.addListener(_onSearchChanged);
   }
 
   // 🔹 Fetch current user's role
@@ -81,12 +84,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
       setState(() {
         yachts = loadedYachts;
+        filteredYachts = List.from(loadedYachts);
         isLoading = false;
       });
     } catch (e) {
       debugPrint('Error: $e');
       setState(() => isLoading = false);
     }
+  }
+
+  void _onSearchChanged() {
+    final q = searchController.text.trim();
+    if (q.isEmpty) {
+      setState(() => filteredYachts = List.from(yachts));
+      return;
+    }
+
+    final lower = q.toLowerCase();
+    setState(() {
+      filteredYachts = yachts.where((y) => y.location.toLowerCase().contains(lower)).toList();
+    });
   }
 
   // 🔹 Logout
@@ -99,6 +116,12 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,
     );
+  }
+  @override
+  void dispose() {
+    searchController.removeListener(_onSearchChanged);
+    searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -168,112 +191,135 @@ class _HomeScreenState extends State<HomeScreen> {
           ? const Center(child: CircularProgressIndicator())
           : yachts.isEmpty
               ? const Center(child: Text('No yachts available'))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: yachts.length,
-                  itemBuilder: (context, index) {
-                    final yacht = yachts[index];
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color.fromARGB(20, 0, 0, 0),
-                            blurRadius: 10,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
+              : Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: TextField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search yacht by city',
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: searchController.text.isEmpty
+                              ? null
+                              : IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    searchController.clear();
+                                  },
+                                ),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
                       ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => YachtDetailScreen(
-                                id: yacht.id,
-                                name: yacht.name,
-                                location: yacht.location,
-                                imageUrl: yacht.imageUrl,
-                                description: yacht.description,
-                                price: yacht.pricePerDay.toInt(),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(12),
+                        itemCount: filteredYachts.length,
+                        itemBuilder: (context, index) {
+                          final yacht = filteredYachts[index];
+
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color.fromARGB(20, 0, 0, 0),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => YachtDetailScreen(
+                                      id: yacht.id,
+                                      name: yacht.name,
+                                      location: yacht.location,
+                                      imageUrl: yacht.imageUrl,
+                                      description: yacht.description,
+                                      price: yacht.pricePerDay.toInt(),
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                  // IMAGE
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.horizontal(
+                                      left: Radius.circular(16),
+                                    ),
+                                    child: Image.network(
+                                      yacht.imageUrl,
+                                      width: 120,
+                                      height: 110,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const Icon(
+                                        Icons.image_not_supported,
+                                        size: 50,
+                                      ),
+                                    ),
+                                  ),
+
+                                  // CONTENT
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            yacht.name,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            yacht.location,
+                                            style: TextStyle(
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'PKR ${yacht.pricePerDay.toInt()}/day',
+                                                style: const TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: accentColor,
+                                                ),
+                                              ),
+                                              Icon(
+                                                Icons.arrow_forward_ios,
+                                                size: 16,
+                                                color: Colors.grey.shade500,
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           );
                         },
-                        child: Row(
-                          children: [
-                            // IMAGE
-                            ClipRRect(
-                              borderRadius: const BorderRadius.horizontal(
-                                left: Radius.circular(16),
-                              ),
-                              child: Image.network(
-                                yacht.imageUrl,
-                                width: 120,
-                                height: 110,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    const Icon(
-                                  Icons.image_not_supported,
-                                  size: 50,
-                                ),
-                              ),
-                            ),
-
-                            // CONTENT
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      yacht.name,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      yacht.location,
-                                      style: TextStyle(
-                                        color: Colors.grey.shade600,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          'PKR ${yacht.pricePerDay.toInt()}/day',
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w600,
-                                            color: accentColor,
-                                          ),
-                                        ),
-                                        Icon(
-                                          Icons.arrow_forward_ios,
-                                          size: 16,
-                                          color: Colors.grey.shade500,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
     );
   }

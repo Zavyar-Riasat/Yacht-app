@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/booking_service.dart';
 import '../models/booking_model.dart';
+import 'booking_detail_screen.dart';
 import 'package:intl/intl.dart';
 
 class UserDashboard extends StatelessWidget {
@@ -106,30 +107,9 @@ class UserDashboard extends StatelessWidget {
                     child: Text(b.status.toUpperCase(), style: TextStyle(color: badgeColor, fontWeight: FontWeight.bold)),
                   ),
                   onTap: () {
-                    // Show details modal
-                    showDialog(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: Text(b.yachtName),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Image.network(b.yachtImage, width: double.infinity, height: 160, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const SizedBox()),
-                            const SizedBox(height: 8),
-                            Text('Location: ${b.yachtLocation}'),
-                            const SizedBox(height: 6),
-                            Text('Price: PKR ${b.pricePerDay.toStringAsFixed(0)}/day'),
-                            const SizedBox(height: 8),
-                            Text('Booking Date: $dateStr'),
-                            const SizedBox(height: 8),
-                            Text('Status: ${b.status}'),
-                          ],
-                        ),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
-                        ],
-                      ),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => BookingDetailScreen(booking: b)),
                     );
                   },
                 ),
