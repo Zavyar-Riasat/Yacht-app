@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'home_screen.dart';
 import '../pages/admin_dashboard.dart';
+import '../pages/terms_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -39,8 +40,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     final role = await AuthService().getUserRole(uid);
+    final accepted = await AuthService().hasAcceptedTerms(uid);
 
     if (!mounted) return;
+
+    if (!accepted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const TermsPage()),
+      );
+      return;
+    }
 
     if (role == 'admin') {
       Navigator.pushReplacement(
@@ -174,7 +184,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           child: const Text(
                             "Register",
-                            style: TextStyle(fontSize: 16),
+                            style: TextStyle(fontSize: 16,color: Colors.white),
                           ),
                         ),
                       ),

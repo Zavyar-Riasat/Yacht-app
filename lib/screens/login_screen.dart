@@ -3,6 +3,7 @@ import '../services/auth_service.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
 import '../pages/admin_dashboard.dart';
+import '../pages/terms_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -35,8 +36,17 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       final role = await AuthService().getUserRole(uid);
+      final accepted = await AuthService().hasAcceptedTerms(uid);
 
       if (!mounted) return;
+
+      if (!accepted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const TermsPage()),
+        );
+        return;
+      }
 
       if (role == 'admin') {
         Navigator.pushReplacement(
@@ -162,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           child: const Text(
                             "Login",
-                            style: TextStyle(fontSize: 16),
+                            style: TextStyle(fontSize: 16,color: Colors.white),
                           ),
                         ),
                       ),

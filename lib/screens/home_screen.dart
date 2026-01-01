@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../pages/admin_dashboard.dart';
+import '../pages/terms_page.dart';
 import '../models/yacht_model.dart';
 import '../screens/yacht_detail_screen.dart';
 import '../screens/login_screen.dart';
@@ -39,8 +40,29 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     fetchUserRole();
+    checkAcceptedTerms();
     fetchYachts();
     searchController.addListener(_onSearchChanged);
+  }
+
+  Future<void> checkAcceptedTerms() async {
+    try {
+      final uid = _auth.currentUser!.uid;
+      final doc = await _firestore.collection('users').doc(uid).get();
+      final data = doc.data();
+      final accepted = data != null && (data['acceptedTerms'] == true);
+      if (!accepted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const TermsPage()),
+          );
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking accepted terms: $e');
+    }
   }
 
   Future<void> fetchUserRole() async {

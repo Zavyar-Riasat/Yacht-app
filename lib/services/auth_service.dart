@@ -24,6 +24,7 @@ class AuthService {
       'name': name ?? '',
       'email': email,
       'role': 'user', // default role
+      'acceptedTerms': false, // track T&C acceptance for first-time users
       'createdAt': FieldValue.serverTimestamp(),
     });
 
@@ -64,6 +65,18 @@ class AuthService {
     } catch (e) {
       // In case of any error, default to 'user' to avoid accidental admin grant.
       return 'user';
+    }
+  }
+
+  /// Returns true if the user has already accepted the Terms & Conditions.
+  Future<bool> hasAcceptedTerms(String uid) async {
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (!doc.exists) return false;
+      final data = doc.data();
+      return data != null && data['acceptedTerms'] == true;
+    } catch (e) {
+      return false;
     }
   }
 }
