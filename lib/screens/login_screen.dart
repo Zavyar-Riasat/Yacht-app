@@ -36,6 +36,18 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       final role = await AuthService().getUserRole(uid);
+
+      if (!mounted) return;
+
+      // Admins skip Terms & Conditions
+      if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboard()),
+        );
+        return;
+      }
+
       final accepted = await AuthService().hasAcceptedTerms(uid);
 
       if (!mounted) return;
@@ -48,17 +60,10 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      if (role == 'admin') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AdminDashboard()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     } catch (e) {
       showError("Invalid email or password");
     }

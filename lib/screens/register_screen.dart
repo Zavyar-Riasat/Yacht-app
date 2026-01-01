@@ -40,6 +40,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     final role = await AuthService().getUserRole(uid);
+
+    if (!mounted) return;
+
+    // Admins skip Terms & Conditions and go straight to admin dashboard
+    if (role == 'admin') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const AdminDashboard()),
+      );
+      return;
+    }
+
     final accepted = await AuthService().hasAcceptedTerms(uid);
 
     if (!mounted) return;
@@ -52,17 +64,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    if (role == 'admin') {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const AdminDashboard()),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    }
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
   } catch (e) {
     showError("Registration failed. Please try again.");
   }

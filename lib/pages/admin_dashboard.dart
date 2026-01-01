@@ -304,7 +304,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       appBar: AppBar(
         title: Text(
           _currentIndex == 0 ? 'Yachts Management' : 'Bookings',
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: const TextStyle(fontWeight: FontWeight.w600,color: Colors.white),
         ),
         backgroundColor: Colors.teal,
         centerTitle: true,

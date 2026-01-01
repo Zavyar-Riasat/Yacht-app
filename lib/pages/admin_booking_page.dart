@@ -33,7 +33,8 @@ class AdminBookingPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bookings Management'),
+        title: const Text('Bookings Management',
+            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
         backgroundColor: Colors.teal,
         centerTitle: true,
       ),

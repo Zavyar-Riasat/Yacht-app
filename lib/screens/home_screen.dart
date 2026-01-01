@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../pages/admin_dashboard.dart';
 import '../pages/terms_page.dart';
+import '../services/auth_service.dart';
 import '../models/yacht_model.dart';
 import '../screens/yacht_detail_screen.dart';
 import '../screens/login_screen.dart';
@@ -48,6 +49,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> checkAcceptedTerms() async {
     try {
       final uid = _auth.currentUser!.uid;
+      // Skip showing Terms & Conditions for admin users.
+      final role = await AuthService().getUserRole(uid);
+      if (role == 'admin') return;
+
       final doc = await _firestore.collection('users').doc(uid).get();
       final data = doc.data();
       final accepted = data != null && (data['acceptedTerms'] == true);
@@ -159,6 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (userRole == 'admin')
             IconButton(
               tooltip: 'Admin Dashboard',
+              
               icon: const Icon(Icons.dashboard, color: Colors.white),
               onPressed: () async {
                 final messenger = ScaffoldMessenger.of(context);
