@@ -433,8 +433,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: yacht.available
-                              ? Colors.green.withOpacity(0.1)
-                              : Colors.red.withOpacity(0.1),
+                              ? Colors.green.withAlpha((0.1 * 255).round())
+                              : Colors.red.withAlpha((0.1 * 255).round()),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(

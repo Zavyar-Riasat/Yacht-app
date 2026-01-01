@@ -114,7 +114,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
+                        color: Colors.black.withAlpha((0.08 * 255).round()),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -321,7 +321,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withAlpha((0.2 * 255).round()),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Row(
@@ -366,7 +366,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withAlpha((0.1 * 255).round()),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),

@@ -9,6 +9,8 @@ class BookingModel {
   final String yachtLocation;
   final double pricePerDay;
   final DateTime bookingDate;
+  final DateTime? startDate; // requested booking start date
+  final DateTime? endDate; // requested booking end date
   final String status; // pending | approved | rejected
   final Timestamp? timestamp;
 
@@ -21,6 +23,8 @@ class BookingModel {
     required this.yachtLocation,
     required this.pricePerDay,
     required this.bookingDate,
+    this.startDate,
+    this.endDate,
     required this.status,
     this.timestamp,
   });
@@ -34,6 +38,8 @@ class BookingModel {
       'yachtLocation': yachtLocation,
       'pricePerDay': pricePerDay,
       'bookingDate': Timestamp.fromDate(bookingDate),
+      if (startDate != null) 'startDate': Timestamp.fromDate(startDate!),
+      if (endDate != null) 'endDate': Timestamp.fromDate(endDate!),
       'status': status,
       if (timestamp != null) 'timestamp': timestamp,
     };
@@ -55,6 +61,21 @@ class BookingModel {
       return DateTime.now();
     }
 
+    DateTime? parseOptionalDate(dynamic raw) {
+      if (raw == null) return null;
+      if (raw is Timestamp) return raw.toDate();
+      if (raw is DateTime) return raw;
+      if (raw is int) return DateTime.fromMillisecondsSinceEpoch(raw);
+      if (raw is String) {
+        try {
+          return DateTime.parse(raw);
+        } catch (_) {
+          return null;
+        }
+      }
+      return null;
+    }
+
     return BookingModel(
       id: documentId,
       userId: map['userId'] as String? ?? '',
@@ -64,6 +85,8 @@ class BookingModel {
       yachtLocation: map['yachtLocation'] as String? ?? '',
       pricePerDay: (map['pricePerDay'] is num) ? (map['pricePerDay'] as num).toDouble() : 0.0,
       bookingDate: parseBookingDate(map['bookingDate']),
+      startDate: parseOptionalDate(map['startDate']),
+      endDate: parseOptionalDate(map['endDate']),
       status: map['status'] as String? ?? 'pending',
       timestamp: map['timestamp'] as Timestamp?,
     );

@@ -197,69 +197,115 @@ class _YachtDetailScreenState extends State<YachtDetailScreen> {
                     ),
 
                   // Book Now Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        // Prevent booking if user is not authenticated
-                        final user = FirebaseAuth.instance.currentUser;
-                        if (user == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please login to book')),
-                          );
-                          return;
+                  // Real-time availability check and Book Now
+                  StreamBuilder<List<BookingModel>>(
+                    stream: BookingService().streamApprovedBookingsForYacht(widget.id),
+                    builder: (context, approvedSnap) {
+                      bool rangeConflicts = false;
+                      if (approvedSnap.hasData && startDate != null && endDate != null) {
+                        final approved = approvedSnap.data!;
+                        for (final BookingModel b in approved) {
+                          final bStart = b.startDate;
+                          final bEnd = b.endDate;
+                          if (bStart != null && bEnd != null) {
+                            if (!(endDate!.isBefore(bStart) || startDate!.isAfter(bEnd))) {
+                              rangeConflicts = true;
+                              break;
+                            }
+                          }
                         }
+                      }
 
-                        // Check role; admins are not allowed to book
-                        final messenger = ScaffoldMessenger.of(context);
-                        final navigator = Navigator.of(context);
-                        final role = await AuthService().getUserRole(user.uid);
-                        if (role == 'admin') {
-                          messenger.showSnackBar(
-                            const SnackBar(content: Text('Admins cannot make bookings')),
-                          );
-                          return;
-                        }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (rangeConflicts)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text(
+                                'This yacht is not available for the selected dates.',
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            ),
 
-                        if (startDate == null || endDate == null) {
-                          // Use captured messenger to avoid calling ScaffoldMessenger.of(context)
-                          // after an await (build-context across async gaps).
-                          messenger.showSnackBar(
-                            const SnackBar(content: Text('Please select start and end dates')),
-                          );
-                          return;
-                        }
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: rangeConflicts
+                                  ? null
+                                  : () async {
+                                // Prevent booking if user is not authenticated
+                                final user = FirebaseAuth.instance.currentUser;
+                                if (user == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Please login to book')),
+                                  );
+                                  return;
+                                }
 
-                        // Create booking model and persist, include yacht snapshot fields
-                        final booking = BookingModel(
-                          userId: user.uid,
-                          yachtId: widget.id,
-                          yachtName: widget.name,
-                          yachtImage: widget.imageUrl,
-                          yachtLocation: widget.location,
-                          pricePerDay: widget.price.toDouble(),
-                          // Use current time as bookingDate (server timestamp stored separately)
-                          bookingDate: DateTime.now(),
-                          status: 'pending',
-                        );
+                                // Check role; admins are not allowed to book
+                                final messenger = ScaffoldMessenger.of(context);
+                                final navigator = Navigator.of(context);
+                                final role = await AuthService().getUserRole(user.uid);
+                                if (role == 'admin') {
+                                  messenger.showSnackBar(
+                                    const SnackBar(content: Text('Admins cannot make bookings')),
+                                  );
+                                  return;
+                                }
 
-                        try {
-                          await BookingService().createBooking(booking);
-                          messenger.showSnackBar(
-                            const SnackBar(content: Text('Booking created — pending approval')),
-                          );
+                                if (startDate == null || endDate == null) {
+                                  messenger.showSnackBar(
+                                    const SnackBar(content: Text('Please select start and end dates')),
+                                  );
+                                  return;
+                                }
 
-                          if (!mounted) return;
-                          // Navigate to user dashboard to view bookings
-                          navigator.pushReplacementNamed('/user-dashboard');
-                        } catch (e) {
-                          messenger.showSnackBar(
-                            SnackBar(content: Text('Booking failed: $e')),
-                          );
-                        }
-                      },
-                      child: const Text('Book Now'),
-                    ),
+                                // Final availability check to avoid race condition
+                                final available = await BookingService().isYachtAvailable(widget.id, startDate!, endDate!);
+                                if (!available) {
+                                  messenger.showSnackBar(
+                                    const SnackBar(content: Text('This yacht is not available for the selected dates.')),
+                                  );
+                                  return;
+                                }
+
+                                // Create booking model and persist, include yacht snapshot fields
+                                final booking = BookingModel(
+                                  userId: user.uid,
+                                  yachtId: widget.id,
+                                  yachtName: widget.name,
+                                  yachtImage: widget.imageUrl,
+                                  yachtLocation: widget.location,
+                                  pricePerDay: widget.price.toDouble(),
+                                  // Use current time as bookingDate (server timestamp stored separately)
+                                  bookingDate: DateTime.now(),
+                                  startDate: startDate,
+                                  endDate: endDate,
+                                  status: 'pending',
+                                );
+
+                                try {
+                                  await BookingService().createBooking(booking);
+                                  messenger.showSnackBar(
+                                    const SnackBar(content: Text('Booking created — pending approval')),
+                                  );
+
+                                  if (!mounted) return;
+                                  // Navigate to user dashboard to view bookings
+                                  navigator.pushReplacementNamed('/user-dashboard');
+                                } catch (e) {
+                                  messenger.showSnackBar(
+                                    SnackBar(content: Text('Booking failed: $e')),
+                                  );
+                                }
+                              },
+                              child: const Text('Book Now'),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),

@@ -66,6 +66,43 @@ class BookingService {
     });
   }
 
+  /// Stream of approved bookings for a specific yacht (real-time).
+  Stream<List<BookingModel>> streamApprovedBookingsForYacht(String yachtId) {
+    final q = bookings
+        .where('yachtId', isEqualTo: yachtId)
+        .where('status', isEqualTo: 'approved');
+    return q.snapshots().map((snap) => snap.docs
+        .map((d) => BookingModel.fromMap(d.data() as Map<String, dynamic>, d.id))
+        .toList());
+  }
+
+  /// Checks whether the yacht is available for the requested date range.
+  /// Returns true when NO approved booking overlaps the [start,end] range.
+  Future<bool> isYachtAvailable(String yachtId, DateTime start, DateTime end) async {
+    final q = bookings
+        .where('yachtId', isEqualTo: yachtId)
+        .where('status', isEqualTo: 'approved');
+
+    final snap = await q.get();
+    final approved = snap.docs
+        .map((d) => BookingModel.fromMap(d.data() as Map<String, dynamic>, d.id))
+        .toList();
+
+    bool overlaps(BookingModel b) {
+      final bStart = b.startDate;
+      final bEnd = b.endDate;
+      if (bStart == null || bEnd == null) return false;
+      // Two ranges [start,end] and [bStart,bEnd] overlap if:
+      // start <= bEnd && end >= bStart
+      return !(end.isBefore(bStart) || start.isAfter(bEnd));
+    }
+
+    for (final b in approved) {
+      if (overlaps(b)) return false;
+    }
+    return true;
+  }
+
   /// Update booking status to 'approved' or 'rejected' etc.
   Future<void> updateBookingStatus(String bookingId, String status) async {
     await bookings.doc(bookingId).update({'status': status});

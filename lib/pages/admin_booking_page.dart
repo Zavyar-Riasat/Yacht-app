@@ -98,8 +98,10 @@ class AdminBookingPage extends StatelessWidget {
   }
 
   Widget _bookingCard(BookingModel b) {
-    final bookingDate = DateFormat.yMMMd().format(b.bookingDate);
     final statusColor = _getStatusColor(b.status);
+    final bookingDateText = (b.startDate != null && b.endDate != null)
+        ? '${DateFormat.yMMMd().format(b.startDate!)} - ${DateFormat.yMMMd().format(b.endDate!)}'
+        : DateFormat.yMMMd().format(b.bookingDate);
 
     return Card(
       elevation: 4,
@@ -129,7 +131,7 @@ class AdminBookingPage extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: statusColor.withAlpha((0.1 * 255).round()),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -174,7 +176,7 @@ class AdminBookingPage extends StatelessWidget {
                 Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
                 const SizedBox(width: 6),
                 Text(
-                  bookingDate,
+                  bookingDateText,
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey[700],
