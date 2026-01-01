@@ -32,12 +32,8 @@ class AdminBookingPage extends StatelessWidget {
     final isLargeScreen = MediaQuery.of(context).size.width > 768;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bookings Management',
-            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
-        backgroundColor: Colors.teal,
-        centerTitle: true,
-      ),
+      appBar: AppBar()
+      ,
       body: StreamBuilder<List<BookingModel>>(
         stream: BookingService().getAllBookings(),
         builder: (context, snapshot) {
@@ -193,7 +189,7 @@ class AdminBookingPage extends StatelessWidget {
                     size: 14, color: Colors.grey[600]),
                 const SizedBox(width: 6),
                 Text(
-                  'ID: ${b.id!.substring(0, 8)}...',
+                  'ID: ${((b.id ?? '') .length > 8) ? '${b.id!.substring(0, 8)}...' : (b.id ?? '')}',
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey[700],

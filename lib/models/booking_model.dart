@@ -40,6 +40,21 @@ class BookingModel {
   }
 
   factory BookingModel.fromMap(Map<String, dynamic> map, String documentId) {
+    DateTime parseBookingDate(dynamic raw) {
+      if (raw == null) return DateTime.now();
+      if (raw is Timestamp) return raw.toDate();
+      if (raw is DateTime) return raw;
+      if (raw is int) return DateTime.fromMillisecondsSinceEpoch(raw);
+      if (raw is String) {
+        try {
+          return DateTime.parse(raw);
+        } catch (_) {
+          return DateTime.now();
+        }
+      }
+      return DateTime.now();
+    }
+
     return BookingModel(
       id: documentId,
       userId: map['userId'] as String? ?? '',
@@ -48,7 +63,7 @@ class BookingModel {
       yachtImage: map['yachtImage'] as String? ?? '',
       yachtLocation: map['yachtLocation'] as String? ?? '',
       pricePerDay: (map['pricePerDay'] is num) ? (map['pricePerDay'] as num).toDouble() : 0.0,
-      bookingDate: (map['bookingDate'] as Timestamp).toDate(),
+      bookingDate: parseBookingDate(map['bookingDate']),
       status: map['status'] as String? ?? 'pending',
       timestamp: map['timestamp'] as Timestamp?,
     );
