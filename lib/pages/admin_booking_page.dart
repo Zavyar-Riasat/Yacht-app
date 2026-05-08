@@ -27,6 +27,7 @@ class AdminBookingPage extends StatelessWidget {
     }
   }
 
+// appbar
   @override
   Widget build(BuildContext context) {
     final isLargeScreen = MediaQuery.of(context).size.width > 768;
